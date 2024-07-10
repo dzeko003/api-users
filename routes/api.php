@@ -22,5 +22,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// Post
 Route::post('/users', [UserController::class, 'store']);
 Route::post('/users/batch', [UserController::class, 'storeBatch']);
+
+// Get
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
