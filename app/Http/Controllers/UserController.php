@@ -79,9 +79,9 @@ class UserController extends Controller
     public function storeBatch(Request $request)
     {
         $users = $request->all();
-    
+
         $validatedUsers = [];
-    
+
         foreach ($users as $user) {
             try {
                 // Validation des données entrantes
@@ -95,7 +95,7 @@ class UserController extends Controller
                     'phone' => 'required|string|max:20',
                     'verified' => 'required|boolean',
                 ]);
-    
+
                 if ($validator->fails()) {
                     // Affiche les erreurs de validation
                     return response()->json(['errors' => $validator->errors()->all()], 422);
@@ -106,7 +106,7 @@ class UserController extends Controller
                 return response()->json(['error' => 'Validation error: ' . $e->getMessage()], 500);
             }
         }
-    
+
         foreach ($validatedUsers as $validatedUser) {
             try {
                 $user = new User();
@@ -118,15 +118,64 @@ class UserController extends Controller
                 $user->phone = $validatedUser['phone'];
                 $user->verified = $validatedUser['verified'];
                 $user->password = isset($validatedUser['password']) ? Hash::make($validatedUser['password']) : null;
-    
+
                 // Sauvegarde de l'utilisateur en base de données
                 $user->save();
             } catch (\Exception $e) {
                 return response()->json(['error' => 'User creation error: ' . $e->getMessage()], 500);
             }
         }
-    
+
         return response()->json(['message' => 'Users created successfully'], 201);
     }
-    
+
+    public function update(Request $request, $id)
+    {
+        // Valider les données de la requête
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:8',
+            'img' => 'nullable|url',
+            'last_name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'verified' => 'required|boolean',
+        ]);
+
+        // Trouver l'utilisateur par ID
+        $user = User::findOrFail($id);
+
+        // Mettre à jour les données de l'utilisateur
+        $user->update([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'password' => $request->input('password') ? bcrypt($request->input('password')) : $user->password,
+            'img' => $request->input('img'),
+            'last_name' => $request->input('last_name'),
+            'first_name' => $request->input('first_name'),
+            'phone' => $request->input('phone'),
+            'verified' => $request->input('verified'),
+        ]);
+
+        // Retourner une réponse JSON
+        return response()->json([
+            'message' => 'User updated successfully',
+            'user' => $user
+        ], 200);
+    }
+
+    public function destroy($id)
+    {
+        // Trouver l'utilisateur par ID
+        $user = User::findOrFail($id);
+
+        // Supprimer l'utilisateur
+        $user->delete();
+
+        // Retourner une réponse JSON
+        return response()->json([
+            'message' => 'User deleted successfully'
+        ], 200);
+    }
 }

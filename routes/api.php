@@ -29,3 +29,9 @@ Route::post('/users/batch', [UserController::class, 'storeBatch']);
 // Get
 Route::get('/users', [UserController::class, 'index']);
 Route::get('/users/{id}', [UserController::class, 'show']);
+
+// PUT
+Route::put('/users/{id}', [UserController::class, 'update']);
+
+// DELETE
+Route::delete('/users/{id}', [UserController::class, 'destroy']);
